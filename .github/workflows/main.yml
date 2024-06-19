@@ -40,17 +40,6 @@ jobs:
       if: github.ref == 'refs/heads/main'
       run: cd terraform && terraform apply -auto-approve tfplan
 
-    - name: Output Terraform EC2 Host
-      run: cd terraform output -raw aws_instance_e_ssh
-      env:
-        TERRAFORM_CLI_PATH: /home/runner/work/_temp/7f9aea92-22f1-4775-9839-bf1179fc4c23
-
-
-    - name: Set EC2 Host Environment Variable
-      run: echo "EC2_HOST=$(terraform output -raw aws_instance_e_ssh)" >> $GITHUB_ENV
-      shell: bash
-
-
     - name: Create Ansible Inventory Directory
       run: mkdir -p ansible
 
