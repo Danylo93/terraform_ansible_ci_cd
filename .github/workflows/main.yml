@@ -23,12 +23,18 @@ jobs:
       run: cd terraform && terraform init
 
     - name: Terraform Plan
-      id: plan
       run: cd terraform && terraform plan -out=tfplan
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
 
     - name: Terraform Apply
       if: github.ref == 'refs/heads/main'
       run: cd terraform && terraform apply -auto-approve tfplan
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
     - name: Ansible Playbook
       run: ansible-playbook -i ansible/hosts ansible/provisionar.yml
