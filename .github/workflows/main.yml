@@ -41,7 +41,9 @@ jobs:
       run: cd terraform && terraform apply -auto-approve tfplan
 
     - name: Set EC2 Host Environment Variable
-      run: echo "EC2_HOST=$(terraform output -raw aws_instance_e_ssh)" >> $GITHUB_ENV
+      run: |
+        echo "EC2_HOST=$(terraform output -raw aws_instance_e_ssh)" >> $GITHUB_ENV
+      shell: bash
 
     - name: Get Terraform Output
       id: terraform_output
