@@ -1,0 +1,18 @@
+<VirtualHost *:80>
+    ServerAdmin webmaster@localhost
+    DocumentRoot /var/www/nextjs-app/public
+
+    <Directory /var/www/nextjs-app/public>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    # Proxy setup for Next.js
+    ProxyPreserveHost On
+    ProxyPass / http://localhost:3000/
+    ProxyPassReverse / http://localhost:3000/
+
+    ErrorLog ${APACHE_LOG_DIR}/nextjs-error.log
+    CustomLog ${APACHE_LOG_DIR}/nextjs-access.log combined
+</VirtualHost>

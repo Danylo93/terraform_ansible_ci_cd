@@ -1,0 +1,37 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+
+
+    - name: Run Ansible Playbook
+      run: ansible-playbook -i ansible_inventory provisionar.yml
+
+      
+    - name: Deploy with Terraform
+      run: |
+        terraform init
+        terraform apply -auto-approve
+
+    - name: Generate Ansible Inventory
+      run: |
+        terraform output instance_ip > ansible_inventory
+
+    - name: Test with Ansible
+      run: ansible-playbook -i hosts provisionar.yml

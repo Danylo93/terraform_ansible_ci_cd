@@ -1,0 +1,98 @@
+---
+- name: Deploy Next.js application
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: "Atualiza repositórios"
+      apt:
+        update_cache: yes
+
+    - name: "Adiciona a chave GPG do NodeSource"
+      apt_key:
+        url: "https://deb.nodesource.com/gpgkey/nodesource.gpg.key"
+        state: present
+
+    - name: "Adiciona o repositório do Node.js 16.x"
+      apt_repository:
+        repo: "deb https://deb.nodesource.com/node_16.x {{ ansible_distribution_release }} main"
+        state: present
+        update_cache: yes
+
+    - name: "Instala o Node.js e o npm"
+      apt:
+        name:
+          - nodejs
+        state: latest
+    
+    - name: "Instala o Apache"
+      apt:
+        name: apache2
+        state: present
+
+    - name: "Instala o gerenciador de pacotes Yarn"
+      npm:
+        name: yarn
+        state: present
+        global: yes
+
+    - name: Clone the repository
+      git:
+        repo: 'https://github.com/Danylo93/fw-filmes.git'
+        dest: '/var/www/nextjs_app'
+        version: 'master'
+
+    - name: "Instala as dependências do projeto Next.js"
+      command: yarn install
+      args:
+        chdir: '/var/www/nextjs_app'
+
+    - name: "Constrói a aplicação Next.js"
+      command: yarn build
+      args:
+        chdir: '/var/www/nextjs_app'
+
+    - name: "Cria o arquivo de configuração do ambiente"
+      template:
+        src: templates/env.production.j2
+        dest: '/var/www/nextjs_app/.env.production'
+
+    - name: "Permissões de diretório"
+      file:
+        path: /var/www/nextjs_app
+        owner: www-data
+        group: www-data
+        recurse: yes
+
+    - name: "Instala o PM2 com Yarn"
+      npm:
+        name: pm2
+        global: yes
+        state: present
+    
+    - name: "Configura VirtualHost para Next.js"
+      template:
+        src: templates/nextjs.conf.j2 
+        dest: /etc/apache2/sites-available/nextjs_app.conf
+
+    - name: "Habilita o VirtualHost do Next.js"
+      command: a2ensite nextjs_app.conf
+
+    - name: "Reinicia o Apache para aplicar as configurações"
+      service:
+        name: apache2
+        state: restarted
+
+    - name: "Inicia a aplicação Next.js com PM2"
+      command: pm2 start yarn --name "nextjs_app" -- start
+      args:
+        chdir: '/var/www/nextjs_app'
+
+    - name: "Configura o PM2 para iniciar na inicialização do sistema"
+      command: pm2 startup systemd
+      become: yes
+    
+    
+
+    
+
