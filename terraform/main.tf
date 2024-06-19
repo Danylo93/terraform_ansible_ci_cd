@@ -12,10 +12,10 @@ resource "aws_instance" "maquina_wp" {
   vpc_security_group_ids = [aws_security_group.acesso_geral.id]
 }
 
-output "instance_ip" {
-  value = aws_instance.maquina_wp.public_ip
+output "aws_instance_e_ssh" {
+  value = [
+    aws_instance.maquina_wp.public_ip,
+    "ssh -i id_rsa ubuntu@${aws_instance.maquina_wp.public_dns}"
+  ]
 }
 
-output "ssh_command" {
-  value = "ssh -i id_rsa ubuntu@${aws_instance.maquina_wp.public_dns}"
-}
