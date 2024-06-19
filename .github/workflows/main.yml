@@ -44,7 +44,12 @@ jobs:
 
     - name: Get Terraform Output
       id: terraform_output
-      run: cd terraform && terraform output -json > tf_output.json
+      run: |
+        cat terraform/tf_output.json  # Verificar conteúdo para debug
+        instance_ip=$(jq -r '.instance_ip.value' terraform/tf_output.json)
+        echo "[maquina_wp]" > ansible/hosts
+        echo "$instance_ip" >> ansible/hosts
+
 
     - name: Update Ansible Hosts
       run: |
