@@ -45,11 +45,7 @@ jobs:
         terraform apply -auto-approve tfplan
         
     - name: Get Terraform Outputs
-      id: terraform_outputs
       run: |
-        cd terraform
-        terraform init -input=false
-        terraform apply -auto-approve -input=false
         instance_ip=$(terraform output -raw instance_ip)
         if [ -z "$instance_ip" ]; then
           echo "Instance IP not found in Terraform output"
