@@ -40,5 +40,17 @@ jobs:
       if: github.ref == 'refs/heads/main'
       run: cd terraform && terraform apply -auto-approve tfplan
 
+    - name: Get Terraform Output
+      id: terraform_output
+      run: echo "EC2_HOST=$(terraform output -raw aws_instance_e_ssh)" >> $GITHUB_ENV
+
+    - name: Create Ansible Inventory
+      run: |
+        echo "[ec2]" > ansible/inventory
+        echo "$EC2_HOST" >> ansible/inventory
+      env:
+        EC2_HOST: ${{ env.EC2_HOST }}
+
+
     - name: Ansible Playbook
       run: ansible-playbook -i ansible/hosts ansible/provisionar.yml
