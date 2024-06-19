@@ -2,24 +2,34 @@ provider "aws" {
   region = "us-east-1"
 }
 
+variable "amis" {
+  type = "map"
+  default = {
+    "us-east-1-ubuntu18" = "ami-0c55b159cbfafe1f0"  # Exemplo de AMI, ajuste conforme necessário
+  }
+}
+
+variable "instance_type" {
+  type = "map"
+  default = {
+    micro = "t2.micro"
+  }
+}
+
 resource "aws_instance" "maquina_wp" {
-  ami = "${var.amis["us-east-1-ubuntu18"]}"
-  instance_type = "${var.instance_type.micro}"
-  key_name = "dan-devops"
+  ami           = var.amis["us-east-1-ubuntu18"]
+  instance_type = var.instance_type.micro
+  key_name      = "dan-devops"
   tags = {
     Name = "maquina_ansible_com_worpress"
   }
-  vpc_security_group_ids = ["${aws_security_group.acesso_geral.id}"]
+  vpc_security_group_ids = [aws_security_group.acesso_geral.id]
 }
 
-# terraform refresh para mostrar o ssh
-output "aws_instance_e_ssh" {
-  value = [
-    aws_instance.maquina_wp.public_ip,
-    "ssh -i id_rsa ubuntu@${aws_instance.maquina_wp.public_dns}"
-  ]
+output "instance_ip" {
+  value = aws_instance.maquina_wp.public_ip
 }
 
-# para liberar a internet interna da maquina, colocar regra do outbound "Outbound rules" como "All traffic"
-# ssh -i ../../id_rsatreinamento ubuntu@ec2-3-93-240-108.compute-1.amazonaws.com
-# conferir 
+output "ssh_command" {
+  value = "ssh -i id_rsa ubuntu@${aws_instance.maquina_wp.public_dns}"
+}

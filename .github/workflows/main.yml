@@ -6,7 +6,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout Code
+      uses: actions/checkout@v2
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
@@ -19,19 +20,20 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-terraform-
 
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y jq ansible
+
     - name: Terraform Init
       run: cd terraform && terraform init
 
     - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-1
-        audience: sts.amazonaws.com
-        managed-session-policies: |
-          - arn:aws:iam::aws:policy/AdministratorAccess
-
 
     - name: Terraform Plan
       run: cd terraform && terraform plan -out=tfplan
@@ -41,27 +43,17 @@ jobs:
       run: cd terraform && terraform apply -auto-approve tfplan
 
     - name: Get Terraform Output
-      run: echo "EC2_HOST=$(terraform output -raw aws_instance_e_ssh)" >> $GITHUB_ENV
+      id: terraform_output
+      run: cd terraform && terraform output -json > tf_output.json
 
-    - name: Create Ansible Inventory File
+    - name: Update Ansible Hosts
       run: |
-        echo "[ec2]" > ansible/hosts
-        echo "$EC2_HOST" >> ansible/hosts
-      env:
-        EC2_HOST: ${{ env.EC2_HOST }}
+        instance_ip=$(jq -r '.instance_ip.value' terraform/tf_output.json)
+        echo "[maquina_wp]" > ansible/hosts
+        echo "$instance_ip" >> ansible/hosts
 
-
-    - name: Create Ansible Inventory Directory
-      run: mkdir -p ansible
-
-    - name: Create Ansible Inventory File
-      run: |
-        echo "[ec2]" > ansible/inventory
-        echo "$EC2_HOST" >> ansible/inventory
-      env:
-        EC2_HOST: ${{ steps.terraform_output.outputs.ec2_host }}
-
-
-
-    - name: Ansible Playbook
+    - name: Run Ansible Playbook
       run: ansible-playbook -i ansible/hosts ansible/provisionar.yml
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
