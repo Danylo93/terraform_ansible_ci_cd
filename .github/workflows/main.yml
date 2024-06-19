@@ -11,11 +11,27 @@ jobs:
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
 
+    - name: Cache Terraform Directory
+      uses: actions/cache@v2
+      with:
+        path: terraform/.terraform
+        key: ${{ runner.os }}-terraform-${{ hashFiles('**/*.tf') }}
+        restore-keys: |
+          ${{ runner.os }}-terraform-
+
     - name: Terraform Init
       run: cd terraform && terraform init
 
+    - name: Terraform Plan
+      id: plan
+      run: cd terraform && terraform plan -out=tfplan
+
     - name: Terraform Apply
-      run: cd terraform && terraform apply -auto-approve
+      if: github.ref == 'refs/heads/main'
+      run: cd terraform && terraform apply -auto-approve tfplan
 
     - name: Ansible Playbook
       run: ansible-playbook -i ansible/hosts ansible/provisionar.yml
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
