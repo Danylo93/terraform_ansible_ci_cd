@@ -10,18 +10,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
+    - name: Checkout Repository
+      uses: actions/checkout@v2
 
-    - name: Run Ansible Playbook
-      run: ansible-playbook -i ansible_inventory ./ansible/provisionar.yml
-
-      
     - name: Deploy with Terraform
       run: |
+        cd terraform
         terraform init
         terraform apply -auto-approve
 
@@ -29,5 +23,5 @@ jobs:
       run: |
         terraform output instance_ip > ansible_inventory
 
-    - name: Test with Ansible
-      run: ansible-playbook -i hosts provisionar.yml
+    - name: Run Ansible Playbook
+      run: ansible-playbook -i ansible_inventory ./ansible/provisionar.yml
