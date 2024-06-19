@@ -28,8 +28,10 @@ jobs:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-1
+        audience: sts.amazonaws.com
         managed-session-policies: |
-          arn:aws:iam::aws:policy/AdministratorAccess
+          - arn:aws:iam::aws:policy/AdministratorAccess
+
 
     - name: Terraform Plan
       run: cd terraform && terraform plan -out=tfplan
