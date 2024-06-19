@@ -42,6 +42,16 @@ jobs:
       if: github.ref == 'refs/heads/main'
       run: cd terraform && terraform apply -auto-approve tfplan
 
+    - name: Check Terraform Directory
+      run: |
+        ls -l terraform
+        ls -l terraform/tf_output.json
+
+    - name: Generate Terraform Output
+      run: |
+        cd terraform
+        terraform output -json > tf_output.json
+
     - name: Get Terraform Output
       id: terraform_output
       run: |
