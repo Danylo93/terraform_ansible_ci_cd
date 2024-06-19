@@ -2,23 +2,9 @@ provider "aws" {
   region = "us-east-1"
 }
 
-variable "amis" {
-  type = "map"
-  default = {
-    "us-east-1-ubuntu18" = "ami-0c55b159cbfafe1f0"  # Exemplo de AMI, ajuste conforme necessário
-  }
-}
-
-variable "instance_type" {
-  type = "map"
-  default = {
-    micro = "t2.micro"
-  }
-}
-
 resource "aws_instance" "maquina_wp" {
   ami           = var.amis["us-east-1-ubuntu18"]
-  instance_type = var.instance_type.micro
+  instance_type = var.instance_type
   key_name      = "dan-devops"
   tags = {
     Name = "maquina_ansible_com_worpress"

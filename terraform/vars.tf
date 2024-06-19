@@ -1,13 +1,11 @@
 variable "amis" {
+  type = map(string)
   default = {
-    "us-east-1-ubuntu18" = "ami-013f17f36f8b1fefb"
-    "us-east-1-ubuntu20" = "ami-042e8287309f5df03"
-    "us-east-2-ubuntu20" = "ami-08962a4068733a2b6"
+    "us-east-1-ubuntu18" = "ami-0c55b159cbfafe1f0"
   }
 }
 
 variable "instance_type" {
-  default = {
-    "micro" = "t2.micro"
-  }
+  type = string
+  default = "t2.micro"
 }
