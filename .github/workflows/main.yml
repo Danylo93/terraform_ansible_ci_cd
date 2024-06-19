@@ -51,8 +51,9 @@ jobs:
         terraform output -json > tf_output.json
 
     - name: Get Terraform Outputs
-      id: terraform_outputs
       run: |
+        cd terraform  # Mude para o diretório onde está o arquivo tf_output.json
+        terraform output -json > tf_output.json
         instance_ip=$(jq -r '.aws_instance_e_ssh.value[0]' tf_output.json)
         if [ -z "$instance_ip" ]; then
           echo "Instance IP not found in Terraform output"
