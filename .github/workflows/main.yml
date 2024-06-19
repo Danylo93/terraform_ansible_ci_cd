@@ -52,9 +52,15 @@ jobs:
 
     - name: Update Ansible Hosts
       run: |
-        instance_ip=$(jq -r '.instance_ip.value' terraform/tf_output.json)
+        cat terraform/tf_output.json  # Debug: Verifique o conteúdo do JSON
+        instance_ip=$(jq -r '.instance_ip.value // empty' terraform/tf_output.json)
+        if [ -z "$instance_ip" ]; then
+          echo "Instance IP not found in tf_output.json"
+          exit 1
+        fi
         echo "[maquina_wp]" > ansible/hosts
         echo "$instance_ip" >> ansible/hosts
+
 
     - name: Run Ansible Playbook
       run: ansible-playbook -i ansible/hosts ansible/provisionar.yml
