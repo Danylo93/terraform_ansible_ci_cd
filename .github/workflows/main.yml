@@ -40,8 +40,10 @@ jobs:
 
     - name: Terraform Apply
       if: github.ref == 'refs/heads/main'
-      run: cd terraform && terraform apply -auto-approve tfplan
-
+      run: |
+        cd terraform
+        terraform apply -auto-approve tfplan
+        terraform output -json > tf_output.json || echo '{}' > tf_output.json
 
     - name: Generate Terraform Output
       run: |
