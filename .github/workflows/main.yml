@@ -53,12 +53,13 @@ jobs:
     - name: Get Terraform Outputs
       id: terraform_outputs
       run: |
-        instance_ip=$(terraform output -json instance_ip)
+        instance_ip=$(jq -r '.aws_instance_e_ssh.value[0]' tf_output.json)
         if [ -z "$instance_ip" ]; then
           echo "Instance IP not found in Terraform output"
           exit 1
         fi
         echo "::set-env name=INSTANCE_IP::$instance_ip"
+
 
     - name: Update Ansible Hosts
       run: |
