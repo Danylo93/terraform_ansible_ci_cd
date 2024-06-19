@@ -1,6 +1,6 @@
 ---
 - name: Deploy Next.js application
-  hosts: all
+  hosts: ec2
   become: yes
 
   tasks:
