@@ -53,13 +53,15 @@ jobs:
     - name: Update Ansible Hosts
       run: |
         cat terraform/tf_output.json  # Debug: Verifique o conteúdo do JSON
-        instance_ip=$(jq -r '.instance_ip.value // empty' terraform/tf_output.json)
+        aws_instance_e_ssh=$(terraform output -json aws_instance_e_ssh)
+        instance_ip=$(echo "$aws_instance_e_ssh" | jq -r '.[0]')
         if [ -z "$instance_ip" ]; then
-          echo "Instance IP not found in tf_output.json"
+          echo "Instance IP not found in Terraform output"
           exit 1
         fi
         echo "[maquina_wp]" > ansible/hosts
         echo "$instance_ip" >> ansible/hosts
+
 
 
     - name: Run Ansible Playbook
