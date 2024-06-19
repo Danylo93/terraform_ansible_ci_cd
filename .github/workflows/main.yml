@@ -47,12 +47,16 @@ jobs:
       id: terraform_output
       run: echo "EC2_HOST=$(terraform output -raw aws_instance_e_ssh)" >> $GITHUB_ENV
 
-    - name: Create Ansible Inventory
+    - name: Create Ansible Inventory Directory
+      run: mkdir -p ansible
+
+    - name: Create Ansible Inventory File
       run: |
         echo "[ec2]" > ansible/inventory
         echo "$EC2_HOST" >> ansible/inventory
       env:
-        EC2_HOST: ${{ env.EC2_HOST }}
+        EC2_HOST: ${{ steps.terraform_output.outputs.ec2_host }}
+
 
 
     - name: Ansible Playbook
