@@ -51,7 +51,7 @@ jobs:
           echo "Instance IP not found in Terraform output"
           exit 1
         fi
-        echo "::set-env name=INSTANCE_IP::$instance_ip"
+        echo "INSTANCE_IP=$instance_ip" >> $GITHUB_ENV
 
     - name: Update Ansible Hosts
       run: |
