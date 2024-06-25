@@ -9,7 +9,7 @@ resource "aws_subnet" "main" {
 }
 
 resource "aws_instance" "backend" {
-  ami           = var.amis["us-east-1-ubuntu18"]
+  ami           = var.amis["us-east-1-ubuntu22"]
   instance_type = var.instance_type
   key_name      = var.key_name
   subnet_id     = aws_subnet.main.id
@@ -22,7 +22,7 @@ resource "aws_instance" "backend" {
 }
 
 resource "aws_instance" "frontend" {
-  ami           = var.amis["us-east-1-ubuntu18"]
+  ami           = var.amis["us-east-1-ubuntu22"]
   instance_type = var.instance_type
   key_name      = var.key_name
   subnet_id     = aws_subnet.main.id
