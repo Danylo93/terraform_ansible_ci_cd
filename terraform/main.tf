@@ -1,7 +1,3 @@
-provider "aws" {
-  region = var.region
-}
-
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
 }
@@ -36,12 +32,4 @@ resource "aws_instance" "frontend" {
   }
 
   vpc_security_group_ids = [aws_security_group.acesso_geral.id]
-}
-
-output "backend_instance_ip" {
-  value = aws_instance.backend.public_ip
-}
-
-output "frontend_instance_ip" {
-  value = aws_instance.frontend.public_ip
 }
