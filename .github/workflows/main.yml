@@ -40,10 +40,9 @@ jobs:
           aws-region: us-east-1
 
       - name: Terraform Destroy
-        if: github.ref == 'refs/heads/master'
         run: |
           cd terraform
-          terraform destroy -auto-approve
+          terraform destroy -auto-approve || echo "No resources to destroy"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -59,6 +58,12 @@ jobs:
 
       - name: Set Execute Permission on generate_inventory.sh
         run: chmod +x generate_inventory.sh
+
+      - name: Print Terraform Outputs
+        run: |
+          cd terraform
+          echo "Backend IP: $(terraform output -raw backend_instance_ip)"
+          echo "Frontend IP: $(terraform output -raw frontend_instance_ip)"
 
       - name: Generate Ansible Inventory
         run: |
