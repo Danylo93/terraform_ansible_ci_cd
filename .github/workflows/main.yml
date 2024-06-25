@@ -59,17 +59,13 @@ jobs:
       - name: Set Execute Permission on generate_inventory.sh
         run: chmod +x generate_inventory.sh
 
-      - name: Print Terraform Outputs
-        run: |
-          cd terraform
-          echo "Backend IP: $(terraform output -raw backend_instance_ip)"
-          echo "Frontend IP: $(terraform output -raw frontend_instance_ip)"
-
       - name: Generate Ansible Inventory
         run: |
           cd terraform
           backend_ip=$(terraform output -raw backend_instance_ip)
           frontend_ip=$(terraform output -raw frontend_instance_ip)
+          echo "Backend IP: $backend_ip"
+          echo "Frontend IP: $frontend_ip"
           cd ..
           ./generate_inventory.sh $backend_ip $frontend_ip
 
