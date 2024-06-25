@@ -39,7 +39,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
       
-      - name: Exec Plan Terraform
+      - name: Terraform Plan
         run: cd terraform && terraform plan -out=tfplan
 
       - name: Terraform Apply
