@@ -41,6 +41,12 @@ jobs:
       
       - name: Terraform Plan
         run: cd terraform && terraform plan -out=tfplan
+      
+      - name: Terraform Destroy
+        if: github.ref == 'refs/heads/master'
+        run: |
+          cd terraform
+          terraform destroy -auto-approve
 
       - name: Terraform Apply
         if: github.ref == 'refs/heads/master'
