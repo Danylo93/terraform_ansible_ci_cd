@@ -1,78 +1,46 @@
-name: Pipeline CI/CD
+name: CI/CD Pipeline
 
-on: [push]
+on:
+  push:
+    branches:
+      - main
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
+
     steps:
-    - name: Checkout do Código
+    - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Configurar Terraform
+    - name: Set up Terraform
       uses: hashicorp/setup-terraform@v1
-
-    - name: Cache do Diretório do Terraform
-      uses: actions/cache@v2
       with:
-        path: terraform/.terraform
-        key: ${{ runner.os }}-terraform-${{ hashFiles('**/*.tf') }}
-        restore-keys: |
-          ${{ runner.os }}-terraform-
+        terraform_version: 1.1.0
 
-    - name: Instalar Dependências
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y jq ansible
+    - name: Initialize Terraform
+      working-directory: ./terraform
+      run: terraform init
 
-    - name: Inicializar Terraform
-      run: cd terraform && terraform init
+    - name: Apply Terraform
+      working-directory: ./terraform
+      run: terraform apply -auto-approve
 
-    - name: Configurar Credenciais AWS
-      uses: aws-actions/configure-aws-credentials@v1
+    - name: Generate Ansible Inventory
+      run: ./generate_inventory.sh
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
+        python-version: '3.x'
 
-    - name: Executar Plano do Terraform
-      run: cd terraform && terraform plan -out=tfplan
-
-    - name: Aplicar Terraform
-      if: github.ref == 'refs/heads/main'
+    - name: Install Ansible
       run: |
-        cd terraform
-        terraform apply -auto-approve tfplan
-        
-    - name: Get Terraform Outputs
-      run: |
-        instance_ip=$(terraform output -raw instance_ip)
-        if [ -z "$instance_ip" ]; then
-          echo "Instance IP not found in Terraform output"
-          exit 1
-        fi
-        echo "INSTANCE_IP=$instance_ip" >> $GITHUB_ENV
+        python -m pip install --upgrade pip
+        pip install ansible
 
-    - name: Update Ansible Hosts
-      run: |
-        instance_ip="${{ env.INSTANCE_IP }}"
-        if [ -z "$instance_ip" ]; then
-          echo "Instance IP not found in Terraform output"
-          exit 1
-        fi
-        echo "[maquina_wp]" > ansible/hosts
-        echo "$instance_ip" >> ansible/hosts
-          run: |
-            instance_ip="${{ env.INSTANCE_IP }}"
-            if [ -z "$instance_ip" ]; then
-              echo "IP da instância não encontrado na saída do Terraform"
-              exit 1
-            fi
-            echo "[maquina_wp]" >> ansible/hosts
-            echo "$instance_ip" >> ansible/hosts
+    - name: Run Ansible Playbook for Backend
+      run: ansible-playbook -i ansible/inventory/hosts ansible/playbooks/backend.yml
 
-    - name: Executar Playbook do Ansible
-      run: ansible-playbook -i ansible/hosts ansible/provisionar.yml
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    - name: Run Ansible Playbook for Frontend
+      run: ansible-playbook -i ansible/inventory/hosts ansible/playbooks/frontend.yml

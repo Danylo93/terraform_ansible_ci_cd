@@ -1,0 +1,17 @@
+- name: Update and upgrade apt packages
+  apt:
+    update_cache: yes
+    upgrade: dist
+
+- name: Install Java
+  apt:
+    name: openjdk-11-jre
+    state: present
+
+- name: Copy backend application jar
+  copy:
+    src: /path/to/your/backend.jar
+    dest: /opt/backend.jar
+
+- name: Run backend application
+  shell: java -jar /opt/backend.jar &
