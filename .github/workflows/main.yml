@@ -51,13 +51,15 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
+      - name: Set Execute Permission on generate_inventory.sh
+        run: chmod +x generate_inventory.sh
+
       - name: Generate Ansible Inventory
         run: |
           cd terraform
           backend_ip=$(terraform output -raw backend_instance_ip)
           frontend_ip=$(terraform output -raw frontend_instance_ip)
           cd ..
-          chmod +x generate_inventory.sh
           ./generate_inventory.sh $backend_ip $frontend_ip
   ansible:
     name: Ansible Playbook
