@@ -29,10 +29,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y jq ansible
       
-      - name: Inicializar Terraform
+      - name: Terraform init
         run: cd terraform && terraform init
 
-      - name: Configurar Credenciais AWS
+      - name: Configure Credentials AWS
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
