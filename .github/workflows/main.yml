@@ -64,15 +64,15 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Set Execute Permission on generate_inventory.sh
-        if: env.skip-terraform-apply == 'false'
         run: chmod +x generate_inventory.sh
 
       - name: Generate Ansible Inventory
-        if: env.skip-terraform-apply == 'false'
         run: |
           cd terraform
           backend_ip=$(terraform output -raw backend_instance_ip)
           frontend_ip=$(terraform output -raw frontend_instance_ip)
+          echo "Backend IP: $backend_ip"
+          echo "Frontend IP: $frontend_ip"
           cd ..
           ./generate_inventory.sh $backend_ip $frontend_ip
 

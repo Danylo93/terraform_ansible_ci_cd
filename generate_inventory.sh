@@ -1,23 +1,24 @@
 #!/bin/bash
 
-if [ $# -ne 2 ]; then
-  echo "Usage: $0 <backend_instance_ip> <frontend_instance_ip>"
+if [ "$#" -ne 2 ]; then
+  echo "Usage: $0 $backend_ip $frontend_ip"
   exit 1
 fi
 
-backend_instance_ip=$1
-frontend_instance_ip=$2
+backend_ip=$1
+frontend_ip=$2
 
-# Cria o diretório de inventário, se não existir
+# Create the ansible inventory directory if it doesn't exist
 mkdir -p ansible/inventory
 
-# Escreve as informações no arquivo de inventário
+# Create the hosts file if it doesn't exist
+touch ansible/inventory/hosts
+
+# Write the inventory to the hosts file
 cat <<EOL > ansible/inventory/hosts
 [backend]
-$backend_instance_ip
+$backend_ip
 
 [frontend]
-$frontend_instance_ip
+$frontend_ip
 EOL
-
-echo "Ansible inventory file generated at ansible/inventory/hosts"
