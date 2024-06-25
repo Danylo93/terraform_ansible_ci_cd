@@ -16,7 +16,7 @@ jobs:
       - name: Configurar Terraform
         uses: hashicorp/setup-terraform@v1
 
-      - name: Cache do Diretório Terraform
+      - name: Cache do Diretório do Terraform
         uses: actions/cache@v2
         with:
           path: terraform/.terraform
@@ -34,9 +34,10 @@ jobs:
 
       - name: Configure Credentials AWS
         uses: aws-actions/configure-aws-credentials@v1
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
       
       - name: Terraform Plan
         run: cd terraform && terraform plan -out=tfplan
@@ -56,8 +57,8 @@ jobs:
           backend_ip=$(terraform output -raw backend_instance_ip)
           frontend_ip=$(terraform output -raw frontend_instance_ip)
           cd ..
+          chmod +x generate_inventory.sh
           ./generate_inventory.sh $backend_ip $frontend_ip
-
   ansible:
     name: Ansible Playbook
     runs-on: ubuntu-latest
