@@ -27,7 +27,7 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y jq ansible
+          sudo apt-get install -y jq ansible awscli
 
       - name: Terraform init
         run: cd terraform && terraform init
@@ -39,16 +39,21 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Terraform Destroy
+      - name: Check Running Instances
+        id: check_instances
         run: |
-          cd terraform
-          terraform destroy -auto-approve || echo "No resources to destroy"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          RUNNING_INSTANCES=$(aws ec2 describe-instances --filters "Name=instance-state-name,Values=running" --query "Reservations[*].Instances[*].InstanceId" --output text)
+          echo "Running instances: $RUNNING_INSTANCES"
+          if [[ -z "$RUNNING_INSTANCES" ]]; then
+            echo "No running instances found. Proceeding with Terraform apply."
+            echo "create_instance=true" >> $GITHUB_ENV
+          else
+            echo "Running instances found. Skipping Terraform apply."
+            echo "create_instance=false" >> $GITHUB_ENV
+          fi
 
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/master'
+        if: env.create_instance == 'true'
         run: |
           cd terraform
           terraform apply -auto-approve
@@ -60,6 +65,7 @@ jobs:
         run: chmod +x generate_inventory.sh
 
       - name: Generate Ansible Inventory
+        if: env.create_instance == 'true'
         run: |
           cd terraform
           backend_ip=$(terraform output -raw backend_instance_ip)
