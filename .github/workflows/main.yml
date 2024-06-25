@@ -16,19 +16,19 @@ jobs:
       - name: Configurar Terraform
         uses: hashicorp/setup-terraform@v1
 
-      - name: Cache do Diretório do Terraform
+      - name: Cache do Diretório Terraform
         uses: actions/cache@v2
         with:
           path: terraform/.terraform
           key: ${{ runner.os }}-terraform-${{ hashFiles('**/*.tf') }}
           restore-keys: |
             ${{ runner.os }}-terraform-
-      
+
       - name: Install Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y jq ansible
-      
+
       - name: Terraform init
         run: cd terraform && terraform init
 
@@ -38,15 +38,18 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
-      
+
       - name: Terraform Plan
         run: cd terraform && terraform plan -out=tfplan
-      
+
       - name: Terraform Destroy
         if: github.ref == 'refs/heads/master'
         run: |
           cd terraform
           terraform destroy -auto-approve
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Terraform Apply
         if: github.ref == 'refs/heads/master'
@@ -67,6 +70,7 @@ jobs:
           frontend_ip=$(terraform output -raw frontend_instance_ip)
           cd ..
           ./generate_inventory.sh $backend_ip $frontend_ip
+
   ansible:
     name: Ansible Playbook
     runs-on: ubuntu-latest
@@ -76,6 +80,4 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Run Ansible Playbook
-        uses: ansible/ansible-lint-action@v5
-        with:
-          args: ansible-playbook -i ansible/inventory/hosts ansible/playbook.yml
+        run: ansible-playbook -i ansible/inventory/hosts ansible/playbook.yml
