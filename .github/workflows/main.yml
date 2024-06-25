@@ -42,7 +42,7 @@ jobs:
       - name: Exec Plan Terraform
         run: cd terraform && terraform plan -out=tfplan
 
-      - name: Aplicar Terraform
+      - name: Terraform Apply
         if: github.ref == 'refs/heads/master'
         run: |
           cd terraform
