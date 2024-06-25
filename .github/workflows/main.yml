@@ -40,17 +40,22 @@ jobs:
           aws-region: us-east-1
 
       - name: Check Existing EC2 Instances
+        id: check-instances
         run: |
           existing_instances=$(aws ec2 describe-instances --filters "Name=instance-state-name,Values=running" --query "Reservations[*].Instances[*].InstanceId" --output text)
           if [ -n "$existing_instances" ]; then
             echo "Existing instances found: $existing_instances"
-            exit 0
+            echo "skip-terraform-apply=true" >> $GITHUB_ENV
+          else
+            echo "No existing instances found."
+            echo "skip-terraform-apply=false" >> $GITHUB_ENV
           fi
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Terraform Apply
+        if: env.skip-terraform-apply == 'false'
         run: |
           cd terraform
           terraform apply -auto-approve
@@ -59,9 +64,11 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Set Execute Permission on generate_inventory.sh
+        if: env.skip-terraform-apply == 'false'
         run: chmod +x generate_inventory.sh
 
       - name: Generate Ansible Inventory
+        if: env.skip-terraform-apply == 'false'
         run: |
           cd terraform
           backend_ip=$(terraform output -raw backend_instance_ip)
@@ -80,4 +87,5 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Run Ansible Playbook
+        if: env.skip-terraform-apply == 'false'
         run: ansible-playbook -i ansible/inventory/hosts ansible/playbook.yml
