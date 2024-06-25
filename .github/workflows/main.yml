@@ -13,16 +13,40 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Set up Terraform
+      - name: Configurar Terraform
         uses: hashicorp/setup-terraform@v1
+
+      - name: Cache do Diretório do Terraform
+        uses: actions/cache@v2
         with:
-          terraform_version: 1.0.0
+          path: terraform/.terraform
+          key: ${{ runner.os }}-terraform-${{ hashFiles('**/*.tf') }}
+          restore-keys: |
+            ${{ runner.os }}-terraform-
+      
+      - name: Instalar Dependências
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq ansible
+      
+      - name: Inicializar Terraform
+        run: cd terraform && terraform init
 
-      - name: Initialize Terraform
-        run: terraform -chdir=terraform init
+      - name: Configurar Credenciais AWS
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Executar Plano do Terraform
+        run: cd terraform && terraform plan -out=tfplan
 
-      - name: Apply Terraform
-        run: terraform -chdir=terraform apply -auto-approve
+      - name: Aplicar Terraform
+        if: github.ref == 'refs/heads/master'
+        run: |
+          cd terraform
+          terraform apply -auto-approve tfplan
 
       - name: Generate Ansible Inventory
         run: |
