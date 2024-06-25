@@ -6,10 +6,16 @@ data "aws_vpc" "default" {
   default = true
 }
 
-data "aws_subnet_ids" "default" {
-  vpc_id = data.aws_vpc.default.id
-}
-
 data "aws_subnet" "default" {
-  id = data.aws_subnet_ids.default.ids[0]
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
+
+  filter {
+    name   = "default-for-az"
+    values = ["true"]
+  }
+
+  availability_zone = "us-east-1a"
 }
