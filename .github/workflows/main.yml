@@ -16,7 +16,7 @@ jobs:
       - name: Configurar Terraform
         uses: hashicorp/setup-terraform@v1
 
-      - name: Cache do Diretório do Terraform
+      - name: Cache do Diretório Terraform
         uses: actions/cache@v2
         with:
           path: terraform/.terraform
