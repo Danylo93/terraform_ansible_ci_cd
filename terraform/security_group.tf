@@ -1,7 +1,7 @@
 resource "aws_security_group" "acesso_geral" {
   name        = "acesso_geral"
   description = "Acesso geral"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = data.aws_vpc.default.id
 
   ingress {
     from_port   = 22
