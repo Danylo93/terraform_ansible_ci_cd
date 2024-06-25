@@ -8,7 +8,7 @@ variable "amis" {
   description = "A map of AWS AMIs per region"
   type        = map(string)
   default = {
-    "us-east-1-ubuntu18" = "ami-0c55b159cbfafe1f0"
+    "us-east-1-ubuntu22" = "ami-0e001c9271cf7f3b9"
   }
 }
 
